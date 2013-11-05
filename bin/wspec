@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+
+require 'wspec'
+require 'wspec/cli'
+
+Wspec::CLI.start
