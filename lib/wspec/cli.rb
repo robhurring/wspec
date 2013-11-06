@@ -9,7 +9,7 @@ module Wspec
       options = RSpec::Core::ConfigurationOptions.new(ARGV)
       options.parse_options
       rspec_files = options.options[:files_or_directories_to_run] || []
-      
+
       listen_dirs = []
       listen_files = []
 
@@ -18,6 +18,8 @@ module Wspec
         listen_dirs |= [File.dirname(filename)]
         listen_files |= [File.expand_path(filename, ".")]
       end
+
+      current_pid = nil
 
       listener = Listen.to(*listen_dirs) do |modified, added, removed|
         run = false
@@ -30,11 +32,14 @@ module Wspec
 
         if run
           puts "Re-running specs..."
-          fork { RSpec::Core::Runner.autorun }
+          current_pid = fork {
+            RSpec::Core::Runner.autorun
+          }
         end
       end
 
       trap 'INT' do
+        Process.kill('INT', current_pid) if current_pid
         listener.stop
       end
 
